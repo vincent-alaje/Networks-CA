@@ -33,3 +33,7 @@ resource "aws_route_table" "vincent-route" {
         Name = "Vincent-Route"
     }
 }
+
+
+#Create a Subnet
+
