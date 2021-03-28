@@ -27,7 +27,7 @@ resource "aws_route_table" "vincent-route" {
     
     route {
         ipv6_cidr_block        = "::/0"
-        egress_only_gateway_id = aws_egress_only_internet_gateway.vincent-gw.id
+        gateway_id = aws_egress_only_internet_gateway.vincent-gw.id
     }
     tags = {
         Name = "Vincent-Route"
@@ -38,6 +38,7 @@ resource "aws_route_table" "vincent-route" {
 resource "aws_subnet" "frontend" {
     vpc_id     = aws_vpc.vincent-vpc.id
     cidr_block = "10.1.1.0/24"
+    availability_zone = "eu-west-1a"
     
     tags = {
         Name = "Frontend-sn"
@@ -90,7 +91,7 @@ resource "aws_security_group" "allow_web" {
 }
 
 #Create a Network Interface
-resource "aws_network_interface" "web-server" {
+resource "aws_network_interface" "web-server-ni" {
   subnet_id       = aws_subnet.frontend.id
   private_ips     = ["10.1.1.50"]
   security_groups = [aws_security_group.allow_web.id]
@@ -100,6 +101,32 @@ resource "aws_network_interface" "web-server" {
 #Create Elastic IP to the network interface
 resource "aws_eip" "one" {
   vpc                       = true
-  network_interface         = aws_network_interface.web-server.id
+  network_interface         = aws_network_interface.web-server-ni.id
   associate_with_private_ip = "10.1.1.50"
+  depends_on = [aws_internet_gateway.vincent-gw]
 }
+
+#Create Ubuntu server and install apache2
+resource "aws_instance" "web-server" {
+  ami = "ami-08bac620dc84221eb"
+  instance_type = "t2.micro"
+  availability_zone = "eu-west-1a"
+  key_name = "vincent-key"
+
+  network_interface {
+    device_index = 0
+    network_interface_id = aws_network_interface.web-server-ni.id
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update -y
+              sudo apt install apache2 -y
+              sudo systemctl start apache2
+              sudo bash -c 'echo your very first web server > /var/www/html/index.html'
+              EOF
+  tags = {
+    Name = "web-server"
+  }
+}
+
