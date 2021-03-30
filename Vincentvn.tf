@@ -27,7 +27,7 @@ resource "aws_route_table" "vincent-route" {
     
     route {
         ipv6_cidr_block        = "::/0"
-        gateway_id = aws_egress_only_internet_gateway.vincent-gw.id
+        gateway_id = aws_internet_gateway.vincent-gw.id
     }
     tags = {
         Name = "Vincent-Route"
@@ -123,7 +123,7 @@ resource "aws_instance" "web-server" {
               sudo apt update -y
               sudo apt install apache2 -y
               sudo systemctl start apache2
-              sudo bash -c 'echo your very first web server > /var/www/html/index.html'
+              sudo bash -c 'echo Hello World! This is a web server > /var/www/html/index.html'
               EOF
   tags = {
     Name = "web-server"
