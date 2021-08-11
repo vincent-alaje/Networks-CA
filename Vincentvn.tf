@@ -1,7 +1,7 @@
 provider "aws" {
     region = "eu-west-1"
-    access_key = "AKIAS6WKYWOFKVTQDEVS"
-    secret_key = "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"
+    access_key = //
+    secret_key = //
 }
 # Create a Virtual Private Cloud (VPC)
 resource "aws_vpc" "vincent-vpc" {
